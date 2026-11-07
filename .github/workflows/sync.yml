@@ -1,0 +1,28 @@
+name: Scheduled seller sync
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: seller-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: vars.ENABLE_STORE_SYNC == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Invoke authenticated Edge Function
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        shell: bash
+        run: |
+          test -n "$SUPABASE_URL" && test -n "$CRON_SECRET" || { echo 'Missing scheduler configuration'; exit 1; }
+          curl --fail-with-body --silent --show-error --max-time 240 \
+            -X POST "$SUPABASE_URL/functions/v1/scheduled-jobs" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d '{}'
+          # No automatic retry: the prior invocation may still be processing changes.

@@ -1,0 +1,13 @@
+project_id = "jonny-store-console"
+
+# Authentication is enforced inside each handler with getUser + operator allowlist.
+# Callback validates a single-use, expiring state; scheduler validates its own secret.
+[functions.console-api]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.ebay-callback]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.scheduled-jobs]
+verify_jwt = false
+import_map = "./functions/deno.json"

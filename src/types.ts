@@ -1,0 +1,11 @@
+export type Listing={id:string;ebay_id:string;sku:string|null;title:string;price:number;currency:string;quantity:number;sold:number;watchers:number|null;image_url:string|null;status:string;management:string;listing_type:string;has_variations:boolean;synced_at:string};
+export type Product={id:string;sku:string;title:string;supplier:string;supplier_url:string;sourcing_model:string;supplier_agreement:boolean;cost:number;shipping_cost:number;price:number;quantity:number;image_url:string;description:string;category_id:string;location_key:string;fulfillment_policy_id:string;payment_policy_id:string;return_policy_id:string;aspects:Record<string,string[]>;snapshot_at:string|null};
+export type Offer={id:string;ebay_offer_id:string;listing_id:string;title:string;amount:number;currency:string;quantity:number;status:string;expires_at:string|null};
+export type Order={id:string;ebay_order_id:string;total:number;currency:string;payment_status:string;fulfillment_status:string;line_items:{lineItemId:string;sku:string;title:string;quantity:number}[];cost_estimate:number|null;fee_estimate:number|null;tracking?:string;ordered_at:string};
+export type Traffic={listing_id:string;day:string;views:number|null;impressions:number|null;transactions:number|null};
+export type QueueAction={id:string;kind:string;target_id:string;summary:string;payload:Record<string,unknown>;status:string;error?:string;created_at:string;updated_at?:string;result?:Record<string,unknown>};
+export type Run={id:string;job:string;status:string;detail:string;created_at:string};
+export type Settings={require_approval:boolean;automation_enabled:boolean;min_margin:number;fee_percent:number;fixed_fee:number;low_stock:number};
+export type Connection={connected:boolean;environment:string;developer_configured:boolean;writes_enabled:boolean;supplier_connector:boolean};
+export type Store={listings:Listing[];products:Product[];offers:Offer[];orders:Order[];traffic:Traffic[];actions:QueueAction[];runs:Run[];settings:Settings};
+export const defaults:Settings={require_approval:true,automation_enabled:false,min_margin:20,fee_percent:13.6,fixed_fee:.4,low_stock:3};
