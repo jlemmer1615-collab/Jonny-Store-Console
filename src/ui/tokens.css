@@ -1,0 +1,46 @@
+/*
+ * Premium UI kit tokens.
+ * Additive only: existing :root / :root[data-theme=light] values in styles.css
+ * are never redeclared here, so the shipped palette stays authoritative.
+ */
+
+:root {
+  /* Spring easing sampled from a real spring curve (Chrome physics-easing guide).
+     Used for entrances so elements settle with an overshoot instead of a stop. */
+  --ease-spring: linear(0, 0.016 0.5%, 0.06 1%, 0.226 2%, 1.116 5.4%, 1.375 6.6%, 1.527 7.7%, 1.565 8.2%, 1.585 8.8%, 1.581 9.3%, 1.559 9.8%, 1.458 10.9%, 0.937 14.3%, 0.784 15.5%, 0.693 16.6%, 0.67 17.1%, 0.657 17.7%, 0.671 18.7%, 0.729 19.8%, 1.042 23.3%, 1.13 24.5%, 1.182 25.6%, 1.201 26.7%, 1.192 27.7%, 1.156 28.8%, 0.977 32.2%, 0.925 33.4%, 0.894 34.5%, 0.882 35.6%, 0.887 36.6%, 0.907 37.7%, 1.045 42.4%, 1.069 44.5%, 1.059 46.3%, 0.979 50.9%, 0.96 53.4%, 0.966 55.3%, 1.013 59.9%, 1.024 62.3%, 0.986 71.2%, 1.008 79.9%, 0.995 88.9%, 1);
+  --ease-out-soft: cubic-bezier(.22, .61, .36, 1);
+  --ease-pop: cubic-bezier(.2, 1.4, .4, 1);
+
+  /* Entrance easing: a damped spring (zeta 0.776) with ~2% overshoot.
+     The previous curve peaked at 1.585 (58% overshoot) and rang several times,
+     which read as a sharp elastic snap rather than a settle. This one arrives
+     and stays. */
+  --ease-bubble: linear(0, 0.0155 2.2%, 0.0561 4.3%, 0.1146 6.5%, 0.1846 8.7%, 0.2612 10.9%, 0.3406 13%, 0.4197 15.2%, 0.4963 17.4%, 0.5686 19.6%, 0.6357 21.7%, 0.6968 23.9%, 0.7517 26.1%, 0.8002 28.3%, 0.8426 30.4%, 0.8791 32.6%, 0.91 34.8%, 0.9359 37%, 0.9573 39.1%, 0.9746 41.3%, 0.9883 43.5%, 0.999 45.7%, 1.007 47.8%, 1.0128 50%, 1.0168 52.2%, 1.0194 54.3%, 1.0207 56.5%, 1.021 58.7%, 1.0207 60.9%, 1.0198 63%, 1.0186 65.2%, 1.0171 67.4%, 1.0155 69.6%, 1.0138 71.7%, 1.0122 73.9%, 1.0106 76.1%, 1.009 78.3%, 1.0076 80.4%, 1.0064 82.6%, 1.0052 84.8%, 1.0042 87%, 1.0033 89.1%, 1.0025 91.3%, 1.0019 93.5%, 1.0013 95.7%, 1.0009 97.8%, 1.0005 100%);
+
+  --dur-pop: 720ms;
+  --dur-lift: 220ms;
+  --dur-sheen: 900ms;
+  --stagger: 70ms;
+
+  /* Surface texture knobs. Percentages of the accent colour mixed into the mesh. */
+  --grain-opacity: .075;
+  --grain-blend: overlay;
+  --mesh-a: 9%;
+  --mesh-b: 7%;
+  --mesh-c: 5%;
+  --glow-strength: .16;
+}
+
+/*
+ * Light mode needs different texture maths, not just different colours.
+ * "overlay" grain over white reads as dirt; "multiply" reads as paper.
+ * Mesh pools must be much weaker or cards turn into colour swatches.
+ */
+:root[data-theme=light] {
+  --grain-opacity: .05;
+  --grain-blend: multiply;
+  --mesh-a: 5%;
+  --mesh-b: 4%;
+  --mesh-c: 3%;
+  --glow-strength: .12;
+}

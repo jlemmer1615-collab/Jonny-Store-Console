@@ -1,0 +1,147 @@
+/*
+ * Premium card surfaces.
+ *
+ * Layer order per card:
+ *   ::before  mesh gradient pools + cursor spotlight   (z-index 0)
+ *   ::after   fractal-noise grain from an inline SVG   (z-index 1)
+ *   children  real content                             (z-index 2)
+ *
+ * Everything is CSS + inline data URIs: no image requests, no new CSP origins.
+ */
+
+@property --spot-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.surface {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Mesh + spotlight share one pseudo element so a card costs a single extra layer. */
+.surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      220px circle at var(--mx, 50%) var(--my, 0%),
+      color-mix(in srgb, var(--green) var(--spot-alpha), transparent),
+      transparent 72%
+    ),
+    radial-gradient(120% 95% at 12% 0%, color-mix(in srgb, var(--green) var(--mesh-a), transparent), transparent 62%),
+    radial-gradient(95% 85% at 94% 6%, color-mix(in srgb, var(--violet) var(--mesh-b), transparent), transparent 64%),
+    radial-gradient(85% 75% at 68% 112%, color-mix(in srgb, var(--blue) var(--mesh-c), transparent), transparent 66%);
+  background-repeat: no-repeat;
+  transition: --spot-alpha var(--dur-lift) var(--ease-out-soft);
+}
+
+.surface:hover::before {
+  --spot-alpha: 13%;
+}
+
+/* Grain. Tiled, static, 6-8% opacity: texture, never visible noise. */
+.surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Content must sit above the texture layers. .stat-decoration stays absolute. */
+.surface > :not(.stat-decoration) {
+  position: relative;
+  z-index: 2;
+}
+
+.surface > .stat-decoration {
+  z-index: 2;
+}
+
+/* Hairline top highlight reads as a lit edge, the cheapest premium cue there is. */
+.surface {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff calc(var(--glow-strength) * 55%), transparent);
+}
+
+:root[data-theme=light] .surface {
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgb(32 48 64 / .04);
+}
+
+/* ---------------------------------------------------------------- lift */
+
+.lift {
+  transition:
+    transform var(--dur-lift) var(--ease-out-soft),
+    box-shadow var(--dur-lift) var(--ease-out-soft),
+    border-color var(--dur-lift) var(--ease-out-soft);
+}
+
+.lift:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--green) 22%, var(--line));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff calc(var(--glow-strength) * 70%), transparent),
+    0 18px 38px -20px rgb(0 0 0 / .6);
+}
+
+:root[data-theme=light] .lift:hover {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 16px 34px -22px rgb(32 48 64 / .35);
+}
+
+/* Featured KPI card: light sweeps across the surface on hover, never at rest. */
+.stat-card.featured {
+  background-image:
+    linear-gradient(
+      110deg,
+      transparent 32%,
+      color-mix(in srgb, var(--green) 20%, transparent) 47%,
+      transparent 62%
+    ),
+    linear-gradient(110deg, var(--green-soft), var(--surface));
+  background-size: 220% 100%, 100% 100%;
+  background-position: 120% 0, 0 0;
+  background-repeat: no-repeat;
+  transition: background-position var(--dur-sheen) var(--ease-out-soft);
+}
+
+.stat-card.featured:hover,
+.stat-card.featured:focus-visible {
+  background-position: -30% 0, 0 0;
+}
+
+/* --------------------------------------------------------- table rows */
+
+.surface tbody tr {
+  position: relative;
+}
+
+.surface tbody tr::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--green);
+  opacity: .75;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--dur-lift) var(--ease-out-soft);
+}
+
+.surface tbody tr:hover::before {
+  transform: scaleY(1);
+}

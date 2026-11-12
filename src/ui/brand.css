@@ -1,0 +1,44 @@
+/* Brand mark.
+   The artwork is a white-on-transparent bitmap, so it is painted through a
+   mask and filled with currentColor. One asset therefore works on the dark and
+   light themes, and picks up any accent tint we ask for later.
+
+   124px keeps the wordmark readable without pushing the sidebar past a
+   900px-tall viewport. */
+.brand {
+  color: var(--text);
+}
+
+.brand-logo {
+  display: block;
+  width: 124px;
+  aspect-ratio: 600 / 347;
+  background-color: currentColor;
+  -webkit-mask-image: url("../assets/jonny-logo.webp");
+  mask-image: url("../assets/jonny-logo.webp");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-position: left center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  transition: opacity var(--dur-lift) var(--ease-out-soft);
+}
+
+.brand:hover .brand-logo,
+.brand:focus-visible .brand-logo {
+  opacity: 0.84;
+}
+
+/* Sign-in lockup: the same mark, larger. */
+.auth-logo {
+  width: 196px;
+  margin-bottom: 30px;
+  color: var(--text);
+}
+
+@media (max-width: 1250px) {
+  .brand-logo {
+    width: 118px;
+  }
+}

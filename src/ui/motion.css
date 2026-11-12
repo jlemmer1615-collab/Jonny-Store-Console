@@ -1,0 +1,208 @@
+/*
+ * Motion layer: bubble-in entrances and micro-interactions.
+ *
+ * Critical: the base state of every animated element must be its VISIBLE state.
+ * styles.css applies `* { animation: none !important }` under
+ * prefers-reduced-motion, so an element whose resting style is opacity:0 would
+ * be permanently invisible for those users. Animation `from` values do the
+ * hiding instead, and `animation-fill-mode: both` holds them during the
+ * stagger delay.
+ */
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: scale(.972) translateY(12px);
+    filter: blur(3px);
+  }
+  55% {
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/*
+ * `backwards` (not `both`) is deliberate: the fill only covers the stagger
+ * delay. Once the entrance finishes the element returns to its normal styles,
+ * so a `:hover` transform on the same element still wins. With `both` the
+ * finished animation would pin `transform: none` forever and kill the lift.
+ */
+.reveal {
+  animation: bubble-in var(--dur-pop) var(--ease-bubble) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+.reveal-soft {
+  animation: rise-in 560ms var(--ease-bubble) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/*
+ * Page stage: one wrapper per screen, remounted with key={page} so the entrance
+ * replays on navigation. The stagger index is derived from sibling position, so
+ * pages only need the `reveal` class -- no per-element --i bookkeeping.
+ */
+.page-stage .reveal:nth-child(1) { --i: 0; }
+.page-stage .reveal:nth-child(2) { --i: 1; }
+.page-stage .reveal:nth-child(3) { --i: 2; }
+.page-stage .reveal:nth-child(4) { --i: 3; }
+.page-stage .reveal:nth-child(5) { --i: 4; }
+.page-stage .reveal:nth-child(6) { --i: 5; }
+.page-stage .reveal:nth-child(7) { --i: 6; }
+.page-stage .reveal:nth-child(8) { --i: 7; }
+.page-stage .reveal:nth-child(n + 9) { --i: 8; }
+
+/* ------------------------------------------------------------- hovers */
+
+.button {
+  transition:
+    background var(--dur-lift) var(--ease-out-soft),
+    border-color var(--dur-lift) var(--ease-out-soft),
+    transform 120ms var(--ease-out-soft),
+    box-shadow var(--dur-lift) var(--ease-out-soft);
+}
+
+.button:active {
+  transform: scale(.98);
+}
+
+.button > svg {
+  transition: transform var(--dur-lift) var(--ease-out-soft);
+}
+
+.button:hover > svg:last-child {
+  transform: translateX(2px);
+}
+
+.text-button svg,
+.bottom-nav svg,
+.icon-button svg {
+  transition: transform var(--dur-lift) var(--ease-out-soft), color var(--dur-lift) var(--ease-out-soft);
+}
+
+.text-button:hover svg:last-child {
+  transform: translateX(2px);
+}
+
+.icon-button:hover svg {
+  transform: scale(1.08);
+}
+
+/* "On your radar" rows get a soft tint + nudge instead of a hard state change. */
+.attention-row {
+  border-radius: 8px;
+  transition:
+    background var(--dur-lift) var(--ease-out-soft),
+    box-shadow var(--dur-lift) var(--ease-out-soft),
+    transform var(--dur-lift) var(--ease-out-soft);
+}
+
+.attention-row:hover {
+  background: color-mix(in srgb, var(--hover) 70%, transparent);
+  box-shadow: 0 0 0 1px var(--line-subtle);
+}
+
+.attention-row > svg:last-child {
+  transition: transform var(--dur-lift) var(--ease-out-soft);
+}
+
+.attention-row:hover > svg:last-child {
+  transform: translateX(3px);
+  color: var(--green);
+}
+
+.attention-icon {
+  transition: transform var(--dur-lift) var(--ease-spring);
+}
+
+.attention-row:hover .attention-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* Queue / activity rows breathe slightly on hover. */
+.mini-queue,
+.mini-activity {
+  transition: background var(--dur-lift) var(--ease-out-soft);
+}
+
+.mini-queue:hover,
+.mini-activity:hover {
+  background: color-mix(in srgb, var(--hover) 55%, transparent);
+}
+
+/* Nav: the active item grows a small left accent, hovered items glow softly. */
+nav button {
+  transition:
+    background var(--dur-lift) var(--ease-out-soft),
+    color var(--dur-lift) var(--ease-out-soft),
+    box-shadow var(--dur-lift) var(--ease-out-soft);
+}
+
+nav button svg {
+  transition: transform var(--dur-lift) var(--ease-spring);
+}
+
+nav button:hover svg {
+  transform: scale(1.06);
+}
+
+nav button.selected {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--green) 18%, transparent);
+}
+
+/* Brand mark gains a restrained halo instead of a flat neon block.
+   The artwork is a mask, so the glow has to sit on the wrapper. */
+.brand {
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--green) 16%, transparent));
+}
+
+/* Dialog entrance: pops like a bubble, not a slide. */
+.modal {
+  animation: bubble-in 420ms var(--ease-pop) both;
+}
+
+.modal-backdrop {
+  animation: rise-in 220ms var(--ease-out-soft) both;
+}
+
+/* Toast arrives with a small spring settle. The keyframes must repeat the
+   translateX(-50%) centring, because a filled animation's final transform
+   replaces the element's own centring transform. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(.975);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+.toast {
+  animation: toast-in 420ms var(--ease-pop) both;
+}
+
+/* Metric digits keep a stable width so counting up does not jitter the layout. */
+.stat-value,
+.chart-total {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

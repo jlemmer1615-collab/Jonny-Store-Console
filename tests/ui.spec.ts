@@ -38,3 +38,17 @@ test('mobile navigation and dialog fit the viewport',async({page})=>{
   await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
 });
+test('premium surfaces, chart and cards stay visible with reduced motion',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');
+  const cards=page.locator('.stat-card');await expect(cards).toHaveCount(4);
+  for(const card of await cards.all())await expect(card).toBeVisible();
+  await expect(page.locator('.panel.performance .chart svg')).toBeVisible();
+  await expect(page.locator('.panel.performance .axis-date')).toHaveCount(5);
+  await expect(page.locator('.chart-metrics > div')).toHaveCount(3);
+  await expect(page.locator('.stat-spark svg').first()).toBeVisible();
+  const painted=await page.evaluate(()=>[...document.querySelectorAll('.stat-card,.panel.surface')].every(el=>{
+    const style=getComputedStyle(el);const rect=el.getBoundingClientRect();
+    return style.opacity==='1'&&style.visibility==='visible'&&style.animationName==='none'&&rect.height>0&&rect.width>0;
+  }));
+  expect(painted).toBeTruthy();
+});
