@@ -11,3 +11,8 @@ import_map = "./functions/deno.json"
 [functions.scheduled-jobs]
 verify_jwt = false
 import_map = "./functions/deno.json"
+# eBay calls this URL directly and supplies X-EBAY-SIGNATURE, which the handler
+# verifies against eBay's published key before deleting anything.
+[functions.ebay-deletion]
+verify_jwt = false
+import_map = "./functions/deno.json"

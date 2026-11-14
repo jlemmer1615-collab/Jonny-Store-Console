@@ -45,6 +45,8 @@ In **Supabase → Edge Functions → Secrets**, set:
 | `EBAY_RUNAME` | eBay Redirect URL Name (RuName), **not** the callback URL itself |
 | `CRON_SECRET` | Same random secret as GitHub Actions |
 | `LIVE_WRITES_ENABLED` | `false` initially; only literal `true` allows production writes |
+| `EBAY_VERIFICATION_TOKEN` | 32–80 chars of `A-Za-z0-9_-`; must match the token entered in the eBay notification settings |
+| `EBAY_DELETION_ENDPOINT` | Exact endpoint URL entered in eBay, e.g. `https://YOUR_PROJECT_REF.supabase.co/functions/v1/ebay-deletion` |
 
 Supabase automatically supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` inside Edge Functions. Do not add the service-role key to frontend variables or this repository. If you previously disclosed any privileged key, rotate it in its issuing service before use.
 
@@ -94,9 +96,28 @@ Only allow eBay-hosted images in the dashboard CSP by default. Product records c
 5. Click **Sync store**. Existing listings, orders, buyer offers and traffic load where the environment/API permits. Analytics data may be unavailable in sandbox.
 6. Before publishing new inventory, set up eBay business policies and an Inventory API merchant location. Add their IDs/key, category ID, HTTPS image, plain-text description and required category-specific item specifics to the product draft. Verify stock/cost and choose an eligible sourcing model.
 7. Queue an action, approve it, and execute it. Check the result in eBay. Complete the sandbox checklist in [TESTING.md](TESTING.md).
-8. Handle eBay's required production application review, privacy disclosures and marketplace account-deletion notification setup or approved exemption in the developer portal. This repo does not implement account-deletion notifications and must not be represented as doing so.
+8. Handle eBay's required production application review, privacy disclosures and marketplace account-deletion notification setup. The `ebay-deletion` function implements the endpoint; see the next section for how to subscribe it.
 
-### Moving to production
+### Marketplace account deletion endpoint
+
+eBay requires every production application to either subscribe to deletion notifications or, only if it persists no eBay data, opt out. This console stores listings, orders, buyer offers and OAuth tokens, so the exemption does not apply — subscribe instead.
+
+1. Deploy the backend, then confirm the endpoint answers a challenge. Replace the values with your own:
+```sh
+curl "https://YOUR_PROJECT_REF.supabase.co/functions/v1/ebay-deletion?challenge_code=test"
+```
+It returns `{"challengeResponse":"…"}`, the SHA-256 of `challengeCode + verificationToken + endpoint` in that exact order.
+2. In the eBay developer portal, open **Application Keys → Notifications** for the production keyset, choose **Marketplace Account Deletion**, and save the alert email.
+3. Set the notification endpoint to the same URL used above and the verification token to `EBAY_VERIFICATION_TOKEN`. eBay sends the challenge immediately, so the function must already be deployed and configured.
+4. Use **Send Test Notification** to confirm delivery.
+
+Security properties of the implementation: the endpoint answers a POST only when `X-EBAY-SIGNATURE` verifies against the key fetched from eBay's Notification API, and it returns `412` otherwise, so it cannot be used as an unauthenticated delete request. Public keys are cached for an hour. Deletion is idempotent — a repeated notification for already-deleted data returns `200`.
+
+The eBay user id is captured at OAuth connect time (`ebay_credentials.ebay_user_id`), because eBay's notification identifies a user by that id while the schema otherwise keys on the Supabase auth UUID. If an account was connected before this column existed, reconnect it so the id is stored; otherwise a notification for that user cannot be matched.
+
+Deletion removes the owner's product, listing, offer, order, traffic, queue and settings rows plus the eBay credentials (which also drops the stored tokens). It deliberately keeps the Supabase login and the `console_operators` row, which are our own identity records rather than eBay data, so the operator can sign in and reconnect.
+
+
 
 Keep scheduled sync disabled during the switch. Replace all eBay application values with production values, set `EBAY_ENVIRONMENT=production`, and reconnect the production seller. Use a separate Supabase project for production so sandbox listings/orders cannot mix with live data. If reusing a project, archive/reset seller tables and credentials deliberately before the switch; the app does not migrate sandbox data to production.
 

@@ -3,6 +3,17 @@ import { AppError, asArray, checked, env, type DB } from './core.ts';
 
 export const environment=()=>Deno.env.get('EBAY_ENVIRONMENT')==='production'?'production':'sandbox';
 export const apiBase=()=>environment()==='production'?'https://api.ebay.com':'https://api.sandbox.ebay.com';
+const identityBase=()=>environment()==='production'?'https://apiz.ebay.com':'https://apiz.sandbox.ebay.com';
+/** The immutable eBay user id, needed to service account deletion notifications. */
+export async function ebayUser(token:string):Promise<{userId:string;username:string|null}|null> {
+  try {
+    const response=await fetch(`${identityBase()}/commerce/identity/v1/user/`,{headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','X-EBAY-C-MARKETPLACE-ID':'EBAY_US'},signal:AbortSignal.timeout(20000)});
+    if(!response.ok) return null;
+    const data=await response.json().catch(()=>null);
+    const userId=typeof data?.userId==='string'&&data.userId?data.userId:null;
+    return userId?{userId,username:typeof data?.username==='string'?data.username:null}:null;
+  } catch { return null; }
+}
 export const scopes=['https://api.ebay.com/oauth/api_scope','https://api.ebay.com/oauth/api_scope/sell.inventory','https://api.ebay.com/oauth/api_scope/sell.fulfillment','https://api.ebay.com/oauth/api_scope/sell.analytics.readonly'];
 export async function tokenGrant(body: URLSearchParams) {
   const response=await fetch(`${apiBase()}/identity/v1/oauth2/token`,{method:'POST',headers:{Authorization:`Basic ${btoa(`${env('EBAY_CLIENT_ID')}:${env('EBAY_CLIENT_SECRET')}`)}`,'Content-Type':'application/x-www-form-urlencoded'},body,signal:AbortSignal.timeout(20000)});

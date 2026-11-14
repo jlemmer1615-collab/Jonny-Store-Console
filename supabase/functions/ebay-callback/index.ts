@@ -1,5 +1,5 @@
 import { admin, checked, env, hash } from '../_shared/core.ts';
-import { environment, tokenGrant } from '../_shared/ebay.ts';
+import { environment, ebayUser, tokenGrant } from '../_shared/ebay.ts';
 
 Deno.serve(async req=>{
   const destination=new URL(env('APP_URL'));
@@ -15,8 +15,12 @@ Deno.serve(async req=>{
     if(!allowed) throw new Error('Invalid operator');
     const token=await tokenGrant(new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:env('EBAY_RUNAME')}));
     if(!token.refresh_token || !token.access_token) throw new Error('Missing tokens');
+    // Best effort: a missing id only affects account deletion matching, so the
+    // connection is still worth keeping and the operator can reconnect.
+    const user=await ebayUser(String(token.access_token));
+    if(!user) console.warn('Connected eBay account without a resolvable user id; deletion notifications cannot match it.');
     checked(await db.from('ebay_credentials').upsert({owner_id:row.owner_id,refresh_token:token.refresh_token,access_token:token.access_token,
-      expires_at:new Date(Date.now()+token.expires_in*1000).toISOString(),environment:environment()}));
+      expires_at:new Date(Date.now()+token.expires_in*1000).toISOString(),environment:environment(),ebay_user_id:user?.userId??null}));
     destination.searchParams.set('ebay','connected');
   } catch { destination.searchParams.set('ebay','failed'); }
   return new Response(null,{status:303,headers:{Location:destination.href,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});

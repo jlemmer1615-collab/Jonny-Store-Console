@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/domain.test.ts tests/database.test.ts",
     "test:ui": "playwright test",
-    "check:edge": "deno check --node-modules-dir=manual --config supabase/functions/deno.json supabase/functions/console-api/index.ts supabase/functions/ebay-callback/index.ts supabase/functions/scheduled-jobs/index.ts",
+    "check:edge": "deno check --node-modules-dir=manual --config supabase/functions/deno.json supabase/functions/console-api/index.ts supabase/functions/ebay-callback/index.ts supabase/functions/scheduled-jobs/index.ts supabase/functions/ebay-deletion/index.ts",
     "test:dom": "vitest run"
   },
   "keywords": [],
